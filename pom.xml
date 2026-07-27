@@ -63,7 +63,7 @@
         <testcontainers.version>1.21.4</testcontainers.version>
 
         <!-- Test deps (standalone) -->
-        <logback.version>1.5.38</logback.version>
+        <logback.version>1.6.0</logback.version>
         <log4j.version>2.26.1</log4j.version>
         <h2.version>2.4.240</h2.version>
         <sqlite.version>3.53.2.1</sqlite.version>
