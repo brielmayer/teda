@@ -63,15 +63,15 @@
         <testcontainers.version>2.0.5</testcontainers.version>
 
         <!-- Test deps (standalone) -->
-        <logback.version>1.6.0</logback.version>
+        <logback.version>1.6.1</logback.version>
         <log4j.version>2.26.1</log4j.version>
         <h2.version>2.4.240</h2.version>
         <sqlite.version>3.53.2.1</sqlite.version>
         <mysql.version>9.7.0</mysql.version>
         <postgresql.version>42.7.13</postgresql.version>
-        <ojdbc.version>23.26.2.0.0</ojdbc.version>
+        <ojdbc.version>23.26.3.0.0</ojdbc.version>
         <mssql-jdbc.version>13.4.0.jre11</mssql-jdbc.version>
-        <mariadb.version>3.5.9</mariadb.version>
+        <mariadb.version>3.5.10</mariadb.version>
 
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
@@ -81,7 +81,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
         <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
-        <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.9.0</spotless-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
