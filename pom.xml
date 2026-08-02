@@ -67,7 +67,7 @@
         <log4j.version>2.26.1</log4j.version>
         <h2.version>2.4.240</h2.version>
         <sqlite.version>3.53.2.1</sqlite.version>
-        <mysql.version>9.7.0</mysql.version>
+        <mysql.version>26.7.0</mysql.version>
         <postgresql.version>42.7.13</postgresql.version>
         <ojdbc.version>23.26.3.0.0</ojdbc.version>
         <mssql-jdbc.version>13.4.0.jre11</mssql-jdbc.version>
