@@ -20,7 +20,7 @@ public class OdsDataParser {
         for (int r = coord.row + 2; r < maxRows; r++) {
             final Map<String, Object> row = new LinkedHashMap<>();
             for (int c = 0; c < headers.size(); c++) {
-                final Object value = odsSheet.getRange(r, coord.col + c + 1).getValue();
+                final Object value = odsSheet.getRange(r, coord.col + c).getValue();
                 row.put(headers.get(c).getName(), value == null ? "" : value);
             }
 

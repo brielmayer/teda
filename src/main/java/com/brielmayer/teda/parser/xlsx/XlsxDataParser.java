@@ -30,7 +30,7 @@ public class XlsxDataParser {
 
             final Map<String, Object> rowMap = new LinkedHashMap<>();
             for (int c = 0; c < headers.size(); c++) {
-                final Cell cell = XlsxTableParser.getCell(rows, r, coord.col + c + 1);
+                final Cell cell = XlsxTableParser.getCell(rows, r, coord.col + c);
                 rowMap.put(headers.get(c).getName(), getCellValue(cell));
             }
 

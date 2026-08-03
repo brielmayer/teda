@@ -47,6 +47,15 @@ final class CockpitReader {
                 commands.add(new Command(parseAction(header), value));
             }
         }
+
+        // an empty cockpit would let the whole run pass without doing anything
+        if (commands.isEmpty()) {
+            throw TedaException.builder()
+                    .appendMessage("Cockpit contains no actions")
+                    .appendMessage("The #Teda table needs at least one non-empty cell below a "
+                            + "TRUNCATE, LOAD, EXECUTE or TEST column.")
+                    .build();
+        }
         return commands;
     }
 

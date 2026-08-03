@@ -14,9 +14,9 @@ public class OdsHeaderParser {
         final int maxCols = odsSheet.getMaxColumns();
         final int headerRow = coord.row + 1;
 
-        for (int c = 1; coord.col + c < maxCols; c++) {
+        for (int c = 0; coord.col + c < maxCols; c++) {
             final Object value = odsSheet.getRange(headerRow, coord.col + c).getValue();
-            if (value == null) {
+            if (value == null || value.toString().isEmpty()) {
                 // if empty column is reached, break
                 break;
             }
