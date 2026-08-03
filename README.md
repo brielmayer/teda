@@ -211,6 +211,15 @@ Sheet `StudentExpected` (expected result):
 Teda sorts both expected and actual rows by these columns before comparing, so row
 order in the spreadsheet and in the database does not matter.
 
+**Schema-qualified tables** are supported: the table name after `#Table` (and the
+one in the cockpit's `TRUNCATE` column) may be written as `SCHEMA.TABLE`, or as
+`CATALOG.SCHEMA.TABLE` on SQL Server.
+
+| #Table | REPORTING.STUDENT |     |         |
+|--------|-------------------|-----|---------|
+| #id    | name              | age | average |
+| 1      | Alice             | 21  | 1.75    |
+
 ### 3. CSV directories
 
 For CSV, each sheet lives in its own `.csv` file inside a directory. The file
@@ -276,6 +285,39 @@ comparing, so tests stay portable across databases:
 - `Boolean` stays `Boolean`; `UUID` is compared as its `String` form.
 - Spreadsheet text is auto-detected: `true`/`false` → boolean, numeric strings →
   `BigDecimal`, ISO date/time strings → the matching `java.time` type.
+
+### NULL values
+
+A cell containing `[NULL]` stands for a SQL `NULL`. It works in both directions:
+in a `LOAD` sheet it inserts `NULL`, in a `TEST` sheet it asserts that the column
+is `NULL`. The spelling is case-insensitive (`[null]`, `[Null]`), and surrounding
+whitespace is ignored.
+
+| #Table | STUDENT |        |         |
+|--------|---------|--------|---------|
+| #id    | name    | age    | average |
+| 1      | Alice   | 21     | 1.75    |
+| 2      | Bob     | [NULL] | [NULL]  |
+
+An **empty cell** is *not* `NULL` — it means the empty string, and is inserted and
+compared as such. The two stay distinguishable:
+
+| Cell content | Loaded as      | Matches in a TEST sheet |
+|--------------|----------------|-------------------------|
+| `[NULL]`     | SQL `NULL`     | only `NULL`             |
+| *(empty)*    | `''`           | only `''`               |
+
+Two things to keep in mind:
+
+- **Oracle stores the empty string as `NULL`.** There an empty cell and `[NULL]`
+  end up identical in the database, so an expected `''` can never match. Use
+  `[NULL]` on Oracle.
+- **Primary key columns must not be `NULL`.** Teda sorts both sides by the `#`
+  columns to line rows up, and a `NULL` key makes that impossible — it fails with
+  `Primary key "..." contains null`.
+
+A row whose cells are all empty still marks the end of a table. A row of `[NULL]`
+cells does not — it is data.
 
 ## Load vs. Test Database
 

@@ -1,0 +1,6 @@
+#Table,STUDENT
+#ID,NAME,AGE,AVERAGE
+1,Alice,21,1.75
+2,[NULL],[NULL],[NULL]
+3,Charlie,[NULL],3.5
+4,[null],23,[NULL]

@@ -19,19 +19,19 @@ public class MySqlDatabase extends BaseDatabase {
 
     @Override
     public void truncateTable(String tableName) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         executeQuery("TRUNCATE TABLE " + tableName);
     }
 
     @Override
     public void dropTable(String tableName) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         executeQuery("DROP TABLE IF EXISTS " + tableName);
     }
 
     @Override
     public void insertRow(String tableName, Map<String, Object> row) throws SQLException {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         validateIdentifiers(row.keySet());
         String query = "INSERT INTO %s(%s) VALUES (%s)";
 
@@ -44,7 +44,7 @@ public class MySqlDatabase extends BaseDatabase {
 
     @Override
     public List<Map<String, Object>> select(String tableName, List<Header> headers) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         List<String> headerNames = headers.stream().map(Header::getName).collect(Collectors.toList());
         validateIdentifiers(headerNames);
         String query = "SELECT %s FROM %s";

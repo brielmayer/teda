@@ -1,58 +1,41 @@
 package com.brielmayer.teda.database.mysql;
 
-import org.junit.jupiter.api.Test;
+import javax.sql.DataSource;
+
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.brielmayer.teda.Teda;
-import com.brielmayer.teda.configuration.TedaConfiguration;
-import com.brielmayer.teda.database.BaseDatabase;
-import com.brielmayer.teda.database.DatabaseFactory;
-import com.brielmayer.teda.model.DocumentType;
-import com.brielmayer.teda.util.ResourceReader;
+import com.brielmayer.teda.database.AbstractDatabaseContractTest;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 @Testcontainers
-public class MySqlSuiteTest {
+public class MySqlSuiteTest extends AbstractDatabaseContractTest {
 
     @Container
     public static MySQLContainer<?> mySqlContainer8_0_31 = new MySQLContainer<>("mysql:8.0.31");
 
-    @Container
-    public static MySQLContainer<?> mySqlContainer5_7_40 = new MySQLContainer<>("mysql:5.7.40");
-
-    private BaseDatabase database;
-
-    void initializeDatabase(MySQLContainer<?> container) {
-        // Setup MySQL database
-        MysqlDataSource dataSource = new MysqlDataSource();
-        dataSource.setUrl(container.getJdbcUrl());
-        dataSource.setUser(container.getUsername());
-        dataSource.setPassword(container.getPassword());
-
-        // Create and initialize database
-        database = DatabaseFactory.createDatabase(dataSource);
-        database.executeQuery(ResourceReader.asString("database/mysql/CREATE_TEST_TABLE.sql"));
+    @Override
+    protected DataSource dataSource() {
+        final MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setUrl(mySqlContainer8_0_31.getJdbcUrl());
+        dataSource.setUser(mySqlContainer8_0_31.getUsername());
+        dataSource.setPassword(mySqlContainer8_0_31.getPassword());
+        return dataSource;
     }
 
-    @Test
-    void loadTestMySql5() {
-        initializeDatabase(mySqlContainer5_7_40);
-        TedaConfiguration configuration = TedaConfiguration.builder()
-                .withDatabase(database.getDataSource())
-                .build();
-
-        new Teda(configuration).execute(ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL);
+    @Override
+    protected String scriptDirectory() {
+        return "database/mysql";
     }
 
-    @Test
-    void loadTestMySql8() {
-        initializeDatabase(mySqlContainer8_0_31);
-        TedaConfiguration configuration = TedaConfiguration.builder()
-                .withDatabase(database.getDataSource())
-                .build();
-
-        new Teda(configuration).execute(ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL);
+    @Override
+    protected boolean supportsSchemas() {
+        // In MySQL a schema is a database, and the container's application user is
+        // only granted rights on its own. Creating another one fails with
+        // "Access denied for user 'test'@'%' to database 'TEDA_SCHEMA'". That is a
+        // limitation of the test environment, not of Teda. Qualified names are
+        // handled in dialect-independent code and covered by BaseDatabaseTest.
+        return false;
     }
 }

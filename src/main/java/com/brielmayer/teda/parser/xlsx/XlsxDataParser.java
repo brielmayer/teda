@@ -12,6 +12,7 @@ import org.dhatim.fastexcel.reader.CellType;
 import org.dhatim.fastexcel.reader.Row;
 
 import com.brielmayer.teda.model.Header;
+import com.brielmayer.teda.parser.CellValue;
 import com.brielmayer.teda.parser.Coord;
 
 public class XlsxDataParser {
@@ -33,10 +34,11 @@ public class XlsxDataParser {
                 rowMap.put(headers.get(c).getName(), getCellValue(cell));
             }
 
-            if (isEmptyRow(rowMap)) {
+            if (CellValue.isEmptyRow(rowMap)) {
                 // end of table reached
                 break;
             }
+            CellValue.resolveNullTokens(rowMap);
             data.add(rowMap);
         }
         return data;
@@ -86,14 +88,5 @@ public class XlsxDataParser {
 
     private static boolean isMathematicalInteger(final double x) {
         return !Double.isNaN(x) && !Double.isInfinite(x) && x == Math.rint(x);
-    }
-
-    private static boolean isEmptyRow(final Map<String, Object> row) {
-        for (final Map.Entry<String, Object> entry : row.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().toString().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
     }
 }

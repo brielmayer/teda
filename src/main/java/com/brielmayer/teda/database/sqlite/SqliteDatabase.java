@@ -19,7 +19,7 @@ public class SqliteDatabase extends BaseDatabase {
 
     @Override
     public void truncateTable(String tableName) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         // SQLite does not support TRUNCATE TABLE; DELETE FROM (without WHERE)
         // is the equivalent and is internally optimized to a truncate.
         executeQuery("DELETE FROM " + tableName);
@@ -27,13 +27,13 @@ public class SqliteDatabase extends BaseDatabase {
 
     @Override
     public void dropTable(String tableName) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         executeQuery("DROP TABLE IF EXISTS " + tableName);
     }
 
     @Override
     public void insertRow(String tableName, Map<String, Object> row) throws SQLException {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         validateIdentifiers(row.keySet());
         String query = "INSERT INTO %s(%s) VALUES (%s)";
 
@@ -46,7 +46,7 @@ public class SqliteDatabase extends BaseDatabase {
 
     @Override
     public List<Map<String, Object>> select(String tableName, List<Header> headers) {
-        validateIdentifier(tableName);
+        validateTableName(tableName);
         List<String> headerNames = headers.stream().map(Header::getName).collect(Collectors.toList());
         validateIdentifiers(headerNames);
         String query = "SELECT %s FROM %s";

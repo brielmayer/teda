@@ -2,46 +2,42 @@ package com.brielmayer.teda.database.mariadb;
 
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import javax.sql.DataSource;
+
 import org.mariadb.jdbc.MariaDbDataSource;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.brielmayer.teda.Teda;
-import com.brielmayer.teda.configuration.TedaConfiguration;
-import com.brielmayer.teda.database.BaseDatabase;
-import com.brielmayer.teda.database.DatabaseFactory;
-import com.brielmayer.teda.model.DocumentType;
-import com.brielmayer.teda.util.ResourceReader;
+import com.brielmayer.teda.database.AbstractDatabaseContractTest;
 
 @Testcontainers
-public class MariaDbTest {
+public class MariaDbTest extends AbstractDatabaseContractTest {
 
     @Container
     public static MariaDBContainer<?> mariaDbContainer = new MariaDBContainer<>("mariadb:10.9.4");
 
-    private BaseDatabase database;
-
-    @BeforeEach
-    void initializeDatabase() throws SQLException {
-        // Setup MariaDB database
-        MariaDbDataSource dataSource = new MariaDbDataSource(mariaDbContainer.getJdbcUrl());
-        dataSource.setUser(mariaDbContainer.getUsername());
-        dataSource.setPassword(mariaDbContainer.getPassword());
-
-        // Create and initialize database
-        database = DatabaseFactory.createDatabase(dataSource);
-        database.executeQuery(ResourceReader.asString("database/mariadb/CREATE_TEST_TABLE.sql"));
+    @Override
+    protected DataSource dataSource() {
+        try {
+            final MariaDbDataSource dataSource = new MariaDbDataSource(mariaDbContainer.getJdbcUrl());
+            dataSource.setUser(mariaDbContainer.getUsername());
+            dataSource.setPassword(mariaDbContainer.getPassword());
+            return dataSource;
+        } catch (final SQLException e) {
+            throw new IllegalStateException("Unable to create the MariaDB DataSource", e);
+        }
     }
 
-    @Test
-    void loadTest() {
-        TedaConfiguration configuration = TedaConfiguration.builder()
-                .withDatabase(database.getDataSource())
-                .build();
+    @Override
+    protected String scriptDirectory() {
+        return "database/mariadb";
+    }
 
-        new Teda(configuration).execute(ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL);
+    @Override
+    protected boolean supportsSchemas() {
+        // Same as MySQL: a schema is a database, and the container's application
+        // user may not create one. See MySqlSuiteTest.
+        return false;
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.brielmayer.teda.model.Header;
+import com.brielmayer.teda.parser.CellValue;
 import com.brielmayer.teda.parser.Coord;
 import com.github.miachm.sods.Sheet;
 
@@ -23,21 +24,13 @@ public class OdsDataParser {
                 row.put(headers.get(c).getName(), value == null ? "" : value);
             }
 
-            if (isEmptyRow(row)) {
+            if (CellValue.isEmptyRow(row)) {
                 // end of table reached
                 break;
             }
+            CellValue.resolveNullTokens(row);
             data.add(row);
         }
         return data;
-    }
-
-    private static boolean isEmptyRow(final Map<String, Object> row) {
-        for (final Map.Entry<String, Object> entry : row.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().toString().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
     }
 }

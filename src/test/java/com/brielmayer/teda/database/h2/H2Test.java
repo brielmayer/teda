@@ -1,42 +1,27 @@
 package com.brielmayer.teda.database.h2;
 
+import javax.sql.DataSource;
+
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import com.brielmayer.teda.Teda;
-import com.brielmayer.teda.configuration.TedaConfiguration;
-import com.brielmayer.teda.database.BaseDatabase;
-import com.brielmayer.teda.database.DatabaseFactory;
-import com.brielmayer.teda.model.DocumentType;
-import com.brielmayer.teda.util.ResourceReader;
+import com.brielmayer.teda.database.AbstractDatabaseContractTest;
 
-public class H2Test {
+public class H2Test extends AbstractDatabaseContractTest {
 
-    private BaseDatabase database;
-
-    @BeforeEach
-    void setup() {
-        // Setup H2 database
+    @Override
+    protected DataSource dataSource() {
         final JdbcDataSource dataSource = new JdbcDataSource();
         // DB_CLOSE_DELAY=-1 keeps the in-memory database alive for the lifetime of the
         // JVM. Without it the database is dropped as soon as no connection is open, which
-        // now happens between statements because connections are closed properly.
+        // happens between statements because connections are closed properly.
         dataSource.setURL("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
         dataSource.setUser("sa");
         dataSource.setPassword("");
-
-        // Create and initialize database
-        database = DatabaseFactory.createDatabase(dataSource);
-        database.executeQuery(ResourceReader.asString("database/h2/CREATE_TEST_TABLE.sql"));
+        return dataSource;
     }
 
-    @Test
-    void loadTest() {
-        TedaConfiguration configuration = TedaConfiguration.builder()
-                .withDatabase(database.getDataSource())
-                .build();
-
-        new Teda(configuration).execute(ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL);
+    @Override
+    protected String scriptDirectory() {
+        return "database/h2";
     }
 }

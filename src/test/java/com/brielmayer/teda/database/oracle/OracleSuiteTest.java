@@ -2,23 +2,18 @@ package com.brielmayer.teda.database.oracle;
 
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import javax.sql.DataSource;
+
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.brielmayer.teda.Teda;
-import com.brielmayer.teda.configuration.TedaConfiguration;
-import com.brielmayer.teda.database.BaseDatabase;
-import com.brielmayer.teda.database.DatabaseFactory;
-import com.brielmayer.teda.model.DocumentType;
-import com.brielmayer.teda.util.ResourceReader;
+import com.brielmayer.teda.database.AbstractDatabaseContractTest;
 
 import oracle.jdbc.datasource.impl.OracleDataSource;
 
 @Testcontainers
-public class OracleSuiteTest {
+public class OracleSuiteTest extends AbstractDatabaseContractTest {
 
     @Container
     public static OracleContainer oracleContainer = new OracleContainer("gvenzl/oracle-xe:21-slim-faststart")
@@ -26,27 +21,37 @@ public class OracleSuiteTest {
             .withUsername("testUser")
             .withPassword("testPassword");
 
-    private BaseDatabase database;
-
-    @BeforeEach
-    void setup() throws SQLException {
-        // Setup Oracle database
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setURL(oracleContainer.getJdbcUrl());
-        dataSource.setUser(oracleContainer.getUsername());
-        dataSource.setPassword(oracleContainer.getPassword());
-
-        // Create and initialize database
-        database = DatabaseFactory.createDatabase(dataSource);
-        database.executeQuery(ResourceReader.asString("database/oracle/CREATE_TEST_TABLE.sql"));
+    @Override
+    protected DataSource dataSource() {
+        try {
+            final OracleDataSource dataSource = new OracleDataSource();
+            dataSource.setURL(oracleContainer.getJdbcUrl());
+            dataSource.setUser(oracleContainer.getUsername());
+            dataSource.setPassword(oracleContainer.getPassword());
+            return dataSource;
+        } catch (final SQLException e) {
+            throw new IllegalStateException("Unable to create the Oracle DataSource", e);
+        }
     }
 
-    @Test
-    void loadTest() {
-        TedaConfiguration configuration = TedaConfiguration.builder()
-                .withDatabase(database.getDataSource())
-                .build();
+    @Override
+    protected String scriptDirectory() {
+        return "database/oracle";
+    }
 
-        new Teda(configuration).execute(ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL);
+    @Override
+    protected boolean emptyStringIsNull() {
+        // Oracle stores '' as NULL, so an empty cell and [NULL] are indistinguishable
+        // once the data is in the database.
+        return true;
+    }
+
+    @Override
+    protected boolean supportsSchemas() {
+        // In Oracle a schema is a user, and creating one needs the CREATE USER
+        // privilege that the container's application user does not have. This is a
+        // limitation of the test setup, not of Teda. Qualified names themselves are
+        // dialect-independent and covered by BaseDatabaseTest.
+        return false;
     }
 }
