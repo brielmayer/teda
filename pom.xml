@@ -51,7 +51,7 @@
         <maven.compiler.release>11</maven.compiler.release>
 
         <!-- Runtime deps -->
-        <fastexcel.version>0.20.2</fastexcel.version>
+        <poi.version>5.4.1</poi.version>
         <sods.version>1.10.1</sods.version>
         <commons-csv.version>1.14.1</commons-csv.version>
         <commons-dbutils.version>1.8.1</commons-dbutils.version>
@@ -111,11 +111,16 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- XLSX -->
+        <!-- Excel (XLS via HSSF, XLSX via XSSF) -->
         <dependency>
-            <groupId>org.dhatim</groupId>
-            <artifactId>fastexcel-reader</artifactId>
-            <version>${fastexcel.version}</version>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
         </dependency>
 
         <!-- ODS -->

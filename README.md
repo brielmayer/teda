@@ -54,13 +54,13 @@ outcome in another.
 
 | Database             | Auto-detected via JDBC |
 |----------------------|:----------------------:|
-| MySQL                | ✅ |
-| PostgreSQL           | ✅ |
-| Microsoft SQL Server | ✅ |
-| Oracle               | ✅ |
-| MariaDB              | ✅ |
-| H2                   | ✅ |
-| SQLite               | ✅ |
+| MySQL                |           ✅           |
+| PostgreSQL           |           ✅           |
+| Microsoft SQL Server |           ✅           |
+| Oracle               |           ✅           |
+| MariaDB              |           ✅           |
+| H2                   |           ✅           |
+| SQLite               |           ✅           |
 
 The correct database implementation is resolved automatically from the
 `DataSource` using Java's `ServiceLoader` mechanism. You only provide a
@@ -68,11 +68,17 @@ The correct database implementation is resolved automatically from the
 
 ## Supported File Formats
 
-| Format                   | Extension    |
-|--------------------------|--------------|
-| Excel                    | `.xlsx`      |
-| OpenDocument Spreadsheet | `.ods`       |
-| CSV (directory)          | `.csv` files |
+| Format                   | Extension          |
+|--------------------------|--------------------|
+| Excel (OOXML)            | `.xlsx`            |
+| Excel (legacy BIFF)      | `.xls`             |
+| OpenDocument Spreadsheet | `.ods`             |
+| CSV (directory)          | `.csv` files       |
+
+Both Excel formats are handled transparently under `DocumentType.EXCEL`; the
+parser detects the file signature and picks the right reader. This matters on
+macOS in particular, where Excel and Numbers sometimes persist a workbook in
+the legacy BIFF format even when the file carries an `.xlsx` extension.
 
 For CSV, point Teda at a **directory** that contains one `.csv` file per sheet
 (file name without the `.csv` becomes the sheet name). Useful when your test
@@ -404,7 +410,7 @@ mvn install
 The test suite uses [Testcontainers](https://www.testcontainers.org/) to spin up
 real MySQL, PostgreSQL, Oracle, SQL Server, and MariaDB instances, so a running
 **Docker** daemon is required to execute the database integration tests. The H2
-tests run in-memory without Docker.Ja 
+tests run in-memory without Docker.
 
 ---
 

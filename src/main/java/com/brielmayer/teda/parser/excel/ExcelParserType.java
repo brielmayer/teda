@@ -1,10 +1,10 @@
-package com.brielmayer.teda.parser.xlsx;
+package com.brielmayer.teda.parser.excel;
 
 import com.brielmayer.teda.model.DocumentType;
 import com.brielmayer.teda.parser.Parser;
 import com.brielmayer.teda.parser.ParserType;
 
-public final class XlsxParserType implements ParserType {
+public final class ExcelParserType implements ParserType {
 
     @Override
     public boolean handles(final DocumentType documentType) {
@@ -13,6 +13,6 @@ public final class XlsxParserType implements ParserType {
 
     @Override
     public Parser createParser() {
-        return new XlsxDocumentParser();
+        return new ExcelDocumentParser();
     }
 }
