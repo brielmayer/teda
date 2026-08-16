@@ -1,56 +1,75 @@
-name: Release to Maven Central
+name: Release
 
-# Publishes a signed release to Maven Central whenever a tag like v1.0.0 is pushed.
-#
-# Required repository secrets (Settings -> Secrets and variables -> Actions):
-#   CENTRAL_TOKEN_USERNAME  - Sonatype Central Portal user token username
-#   CENTRAL_TOKEN_PASSWORD  - Sonatype Central Portal user token password
-#   GPG_PRIVATE_KEY         - ASCII-armored private key: gpg --armor --export-secret-keys <KEYID>
-#   GPG_PASSPHRASE          - passphrase of that GPG key
-#
-# The pom.xml version stays on -SNAPSHOT; the release version is taken from the
-# tag (v1.0.0 -> 1.0.0). With autoPublish=false in the pom, the upload is staged
-# as a deployment in the Central Portal that you review and publish manually.
-
+# A tag builds and drafts, it does not publish. Reaching Maven Central is a separate, deliberate
+# step: see publish.yml.
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  publish:
-    name: Build, sign and publish
+  release:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
-          # writes ~/.m2/settings.xml with a 'central' server referencing the env vars below
-          server-id: central
-          server-username: CENTRAL_TOKEN_USERNAME
-          server-password: CENTRAL_TOKEN_PASSWORD
-          # imports the private key and wires the passphrase env var into the gpg profile
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Make the Maven Wrapper executable
         run: chmod +x ./mvnw
 
-      - name: Set release version from tag (v1.2.3 -> 1.2.3)
-        run: ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.16.2:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
+      # The pom stays on -SNAPSHOT and the release version comes from the tag, so there is no
+      # version in the build to compare against. What is maintained by hand is the changelog entry
+      # and the dependency snippet in the README, and forgetting either would ship a release with
+      # no notes or with a version nobody can copy. Fail here instead.
+      - name: Changelog and README must know this version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "CHANGELOG.md has no '## [$version]' section" >&2
+            exit 1
+          fi
+          if ! grep -q "<version>$version</version>" README.md; then
+            echo "README.md does not offer <version>$version</version> in its dependency snippet" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_ENV"
 
-      - name: Publish to Maven Central
-        run: ./mvnw -B -ntp -Prelease -DskipTests deploy
-        env:
-          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
-          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Set release version from tag (v1.2.3 -> 1.2.3)
+        run: ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.16.2:set -DnewVersion="$version" -DgenerateBackupPoms=false
+
+      # The full suite, including the Testcontainers database tests. Docker is pre-installed on the
+      # runner. publish.yml skips the tests, so this is where a release is proven.
+      - name: Build and test
+        run: ./mvnw -B -ntp verify
+
+      # Everything between this version's heading and the next one.
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v heading="## [$version]" '
+            $0 == heading   { found = 1; next }
+            found && /^## / { exit }
+            found           { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "Section '## [$version]' in CHANGELOG.md is empty" >&2
+            exit 1
+          fi
+
+      # Draft, so the notes and the artifacts can be reviewed before anyone can depend on them.
+      - name: Draft the release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          # 1.0.0-RC2 and the like are marked as a pre-release, 1.0.0 is not
+          prerelease: ${{ contains(env.version, '-') }}
+          name: ${{ env.version }}
+          body_path: release-notes.md
+          files: target/*.jar

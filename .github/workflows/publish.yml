@@ -1,0 +1,58 @@
+name: Publish to Maven Central
+
+# Runs when a GitHub release is published, not when a tag is pushed. A version on Maven Central can
+# never be replaced or withdrawn, so it stays a decision someone makes rather than a side effect of
+# tagging. release.yml has already built and tested this commit.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   CENTRAL_TOKEN_USERNAME  - Sonatype Central Portal user token username
+#   CENTRAL_TOKEN_PASSWORD  - Sonatype Central Portal user token password
+#   GPG_PRIVATE_KEY         - ASCII-armored private key: gpg --armor --export-secret-keys <KEYID>
+#   GPG_PASSPHRASE          - passphrase of that GPG key
+#
+# The pom.xml version stays on -SNAPSHOT; the release version is taken from the tag the release
+# points at (v1.0.0 -> 1.0.0). With autoPublish=false in the pom, the upload is staged as a
+# deployment in the Central Portal that you review and publish there.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          # writes ~/.m2/settings.xml with a 'central' server referencing the env vars below
+          server-id: central
+          server-username: CENTRAL_TOKEN_USERNAME
+          server-password: CENTRAL_TOKEN_PASSWORD
+          # imports the private key and wires the passphrase env var into the gpg profile
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Make the Maven Wrapper executable
+        run: chmod +x ./mvnw
+
+      - name: Set release version from tag (v1.2.3 -> 1.2.3)
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.16.2:set -DnewVersion="${TAG#v}" -DgenerateBackupPoms=false
+
+      - name: Publish to Maven Central
+        run: ./mvnw -B -ntp -Prelease -DskipTests deploy
+        env:
+          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

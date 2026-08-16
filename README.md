@@ -92,7 +92,7 @@ Teda is a Java 11 library built with Maven. Add it as a test dependency:
 <dependency>
     <groupId>com.brielmayer.teda</groupId>
     <artifactId>teda</artifactId>
-    <version>1.0.0-RC1</version>
+    <version>1.0.0-RC2</version>
     <scope>test</scope>
 </dependency>
 ```
