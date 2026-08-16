@@ -40,4 +40,9 @@
 
 ## [1.0.0-RC1]
 
-First release candidate.
+### Added
+
+- XLSX, ODS, and CSV support
+- MySQL, PostgreSQL, Oracle, SQL Server, MariaDB, H2, SQLite
+- Fluent `TedaConfiguration` builder
+- Custom handlers for TRUNCATE, LOAD, EXECUTE, TEST
