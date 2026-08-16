@@ -23,8 +23,12 @@ public class SortComparator implements Comparator<Map<String, Object>>, Serializ
 
     private final List<Header> primaryKeys;
 
-    public SortComparator(final List<Header> primaryKeys) {
+    /** Describes what is being sorted, so errors can name the sheet and table. */
+    private final String source;
+
+    public SortComparator(final List<Header> primaryKeys, final String source) {
         this.primaryKeys = primaryKeys;
+        this.source = source;
     }
 
     @Override
@@ -48,13 +52,15 @@ public class SortComparator implements Comparator<Map<String, Object>>, Serializ
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static int compareValues(final String column, final Object value1, final Object value2) {
+    private int compareValues(final String column, final Object value1, final Object value2) {
         // a null primary key would break row alignment; reject early with a
         // clear message rather than throwing NullPointerException below
         if (value1 == null || value2 == null) {
             throw TedaException.builder()
-                    .appendMessage("Unable to sort data")
-                    .appendMessage("Primary key \"%s\" contains null", column)
+                    .appendMessage("Unable to sort %s", source)
+                    .appendMessage("Primary key column %s contains no value", column)
+                    .appendMessage("Every row must have a value in each primary key column, "
+                            + "otherwise expected and actual rows can not be matched.")
                     .build();
         }
 
@@ -62,19 +68,20 @@ public class SortComparator implements Comparator<Map<String, Object>>, Serializ
         // a mismatch means the primary key holds inconsistent data
         if (!value1.getClass().equals(value2.getClass())) {
             throw TedaException.builder()
-                    .appendMessage("Unable to sort data")
-                    .appendMessage("Data types are not equal within primary key \"%s\"", column)
+                    .appendMessage("Unable to sort %s", source)
+                    .appendMessage("Primary key column %s contains values of different data types", column)
                     .appendMessage(
-                            "Can not compare \"%s\" with \"%s\"",
+                            "Can not compare %s with %s",
                             value1.getClass().getSimpleName(), value2.getClass().getSimpleName())
+                    .appendMessage("Values: \"%s\" and \"%s\"", value1, value2)
                     .build();
         }
 
         if (!(value1 instanceof Comparable)) {
             throw TedaException.builder()
-                    .appendMessage("Unable to sort data")
+                    .appendMessage("Unable to sort %s", source)
                     .appendMessage(
-                            "Primary key \"%s\" of type %s is not comparable",
+                            "Primary key column %s is of type %s, which can not be sorted",
                             column, value1.getClass().getSimpleName())
                     .build();
         }

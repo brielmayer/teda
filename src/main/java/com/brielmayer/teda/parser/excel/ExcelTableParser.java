@@ -31,7 +31,12 @@ public class ExcelTableParser {
         final List<Header> headers = ExcelHeaderParser.parseHeader(excelSheet, coord);
         final List<Map<String, Object>> data = ExcelDataParser.parseData(excelSheet, coord);
 
-        return Table.builder().name(tableName).headers(headers).data(data).build();
+        return Table.builder()
+                .sheetName(excelSheet.getSheetName())
+                .name(tableName)
+                .headers(headers)
+                .data(data)
+                .build();
     }
 
     private static String parseTableName(Sheet excelSheet, Coord coord) {

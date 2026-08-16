@@ -17,6 +17,17 @@ import com.brielmayer.teda.model.Header;
 
 class SortComparatorTest {
 
+    /** What the comparator names in its error messages; irrelevant for the ordering tests. */
+    private static final String SOURCE = "the test data";
+
+    private static SortComparator comparatorFor(final String... primaryKeys) {
+        final List<Header> headers = new ArrayList<>();
+        for (final String primaryKey : primaryKeys) {
+            headers.add(Header.fromName(primaryKey));
+        }
+        return new SortComparator(headers, SOURCE);
+    }
+
     private static Map<String, Object> row(final Object... keyValues) {
         final Map<String, Object> row = new LinkedHashMap<>();
         for (int i = 0; i < keyValues.length; i += 2) {
@@ -37,7 +48,7 @@ class SortComparatorTest {
         final List<Map<String, Object>> rows =
                 new ArrayList<>(Arrays.asList(row("id", 10L), row("id", 2L), row("id", 1L)));
 
-        rows.sort(new SortComparator(Arrays.asList(Header.fromName("#id"))));
+        rows.sort(comparatorFor("#id"));
 
         assertEquals(Arrays.asList(1L, 2L, 10L), idColumn(rows));
     }
@@ -51,7 +62,7 @@ class SortComparatorTest {
         final List<Map<String, Object>> actual = new ArrayList<>(Arrays.asList(
                 row("id", new BigDecimal("2")), row("id", new BigDecimal("10")), row("id", new BigDecimal("1"))));
 
-        final SortComparator comparator = new SortComparator(Arrays.asList(Header.fromName("#id")));
+        final SortComparator comparator = comparatorFor("#id");
         expected.sort(comparator);
         actual.sort(comparator);
 
@@ -64,7 +75,7 @@ class SortComparatorTest {
         final List<Map<String, Object>> rows = new ArrayList<>(
                 Arrays.asList(row("group", "A", "id", 2L), row("group", "B", "id", 1L), row("group", "A", "id", 1L)));
 
-        rows.sort(new SortComparator(Arrays.asList(Header.fromName("#group"), Header.fromName("#id"))));
+        rows.sort(comparatorFor("#group", "#id"));
 
         assertEquals(
                 Arrays.asList("A", "A", "B"),
@@ -76,6 +87,6 @@ class SortComparatorTest {
     void throwsWhenPrimaryKeyTypesAreInconsistentWithinAList() {
         final List<Map<String, Object>> rows = new ArrayList<>(Arrays.asList(row("id", 1L), row("id", "not-a-number")));
 
-        assertThrows(TedaException.class, () -> rows.sort(new SortComparator(Arrays.asList(Header.fromName("#id")))));
+        assertThrows(TedaException.class, () -> rows.sort(comparatorFor("#id")));
     }
 }

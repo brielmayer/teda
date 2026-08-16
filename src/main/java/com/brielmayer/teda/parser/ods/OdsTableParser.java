@@ -27,7 +27,12 @@ public class OdsTableParser {
         final List<Header> headers = OdsHeaderParser.parseHeader(odsSheet, coord);
         final List<Map<String, Object>> data = OdsDataParser.parseData(odsSheet, coord);
 
-        return Table.builder().name(tableName).headers(headers).data(data).build();
+        return Table.builder()
+                .sheetName(odsSheet.getName())
+                .name(tableName)
+                .headers(headers)
+                .data(data)
+                .build();
     }
 
     private static String parseTableName(Sheet odsSheet, Coord coord) {

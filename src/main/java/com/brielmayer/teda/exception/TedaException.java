@@ -31,6 +31,9 @@ public class TedaException extends RuntimeException {
         }
 
         public TedaException build() {
+            if (cause != null && !(cause instanceof TedaException) && cause.getMessage() != null) {
+                appendMessage("Reason: %s", cause.getMessage());
+            }
             return new TedaException(message.toString(), cause);
         }
     }

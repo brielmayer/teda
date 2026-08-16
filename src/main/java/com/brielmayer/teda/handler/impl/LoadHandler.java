@@ -16,7 +16,7 @@ public final class LoadHandler implements ILoadHandler {
     private static final Logger log = LoggerFactory.getLogger(LoadHandler.class);
 
     public void load(final BaseDatabase database, final Table table) {
-        log.info("Load table: {}", table.getName());
+        log.info("Load {}", table.describe());
 
         int rowCount = 1;
         for (final Map<String, Object> row : table.getData()) {
@@ -24,8 +24,8 @@ public final class LoadHandler implements ILoadHandler {
                 database.insertRow(table.getName(), row);
             } catch (final SQLException e) {
                 throw TedaException.builder()
-                        .appendMessage("Failed to insert data into %s", table.getName())
-                        .appendMessage("Row %d contains an error", rowCount)
+                        .appendMessage("Failed to insert row %d into %s", rowCount, table.describe())
+                        .appendMessage("Row %d: %s", rowCount, row)
                         .cause(e)
                         .build();
             }

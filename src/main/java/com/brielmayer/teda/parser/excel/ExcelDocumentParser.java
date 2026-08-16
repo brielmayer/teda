@@ -31,7 +31,7 @@ public class ExcelDocumentParser implements Parser {
             }
         } catch (final IOException e) {
             throw TedaException.builder()
-                    .appendMessage("Unable to read InputStream")
+                    .appendMessage("Unable to read the Excel workbook from the given InputStream")
                     .cause(e)
                     .build();
         }

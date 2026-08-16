@@ -34,9 +34,10 @@ final class CockpitReader {
                 }
                 if (!(rawValue instanceof String)) {
                     throw TedaException.builder()
+                            .appendMessage("Invalid cell in sheet \"%s\", column %s", Parser.COCKPIT, header)
                             .appendMessage(
-                                    "Cockpit cell for action \"%s\" must be a string, got %s (%s)",
-                                    header, rawValue.getClass().getSimpleName(), rawValue)
+                                    "Expected a sheet or table name as text, but found %s (%s)",
+                                    rawValue.getClass().getSimpleName(), rawValue)
                             .build();
                 }
                 final String value = (String) rawValue;
@@ -51,7 +52,7 @@ final class CockpitReader {
         // an empty cockpit would let the whole run pass without doing anything
         if (commands.isEmpty()) {
             throw TedaException.builder()
-                    .appendMessage("Cockpit contains no actions")
+                    .appendMessage("Sheet \"%s\" contains no actions", Parser.COCKPIT)
                     .appendMessage("The #Teda table needs at least one non-empty cell below a "
                             + "TRUNCATE, LOAD, EXECUTE or TEST column.")
                     .build();
@@ -82,8 +83,10 @@ final class CockpitReader {
             return Action.valueOf(header);
         } catch (final IllegalArgumentException e) {
             throw TedaException.builder()
-                    .appendMessage("Unknown cockpit action \"%s\"", header)
-                    .appendMessage("Valid actions are: %s", Arrays.toString(Action.values()))
+                    .appendMessage("Unknown action \"%s\" in sheet \"%s\"", header, Parser.COCKPIT)
+                    .appendMessage(
+                            "The column headers of the #Teda table must be one of: %s",
+                            Arrays.toString(Action.values()))
                     .cause(e)
                     .build();
         }

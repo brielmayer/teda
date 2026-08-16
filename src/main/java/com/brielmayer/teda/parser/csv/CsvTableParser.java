@@ -13,19 +13,24 @@ import com.brielmayer.teda.parser.Parser;
 
 public class CsvTableParser {
 
-    public static Map<String, Table> parseTable(final List<List<String>> grid) {
+    public static Map<String, Table> parseTable(final String sheetName, final List<List<String>> grid) {
         final Stream<Coord> tableStream = findCells(Parser.TABLE, grid).stream();
         final Stream<Coord> tedaStream = findCells(Parser.TEDA, grid).stream();
         return Stream.concat(tableStream, tedaStream)
-                .map(coord -> parseTable(grid, coord))
+                .map(coord -> parseTable(sheetName, grid, coord))
                 .collect(HashMap::new, (map, table) -> map.put(table.getName(), table), HashMap::putAll);
     }
 
-    private static Table parseTable(final List<List<String>> grid, final Coord coord) {
+    private static Table parseTable(final String sheetName, final List<List<String>> grid, final Coord coord) {
         final String tableName = parseTableName(grid, coord);
         final List<Header> headers = CsvHeaderParser.parseHeader(grid, coord);
         final List<Map<String, Object>> data = CsvDataParser.parseData(grid, coord);
-        return Table.builder().name(tableName).headers(headers).data(data).build();
+        return Table.builder()
+                .sheetName(sheetName)
+                .name(tableName)
+                .headers(headers)
+                .data(data)
+                .build();
     }
 
     private static String parseTableName(final List<List<String>> grid, final Coord coord) {

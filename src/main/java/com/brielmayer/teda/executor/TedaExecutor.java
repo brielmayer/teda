@@ -1,6 +1,7 @@
 package com.brielmayer.teda.executor;
 
 import java.util.List;
+import java.util.TreeSet;
 
 import com.brielmayer.teda.database.BaseDatabase;
 import com.brielmayer.teda.exception.TedaException;
@@ -8,6 +9,7 @@ import com.brielmayer.teda.handler.IExecutionHandler;
 import com.brielmayer.teda.handler.ILoadHandler;
 import com.brielmayer.teda.handler.ITestHandler;
 import com.brielmayer.teda.handler.ITruncateHandler;
+import com.brielmayer.teda.model.Action;
 import com.brielmayer.teda.model.Document;
 import com.brielmayer.teda.model.Sheet;
 
@@ -48,7 +50,7 @@ public class TedaExecutor {
                 truncateHandler.truncate(testDatabase, value);
                 break;
             case LOAD:
-                requireSheet(document, value, "LOAD")
+                requireSheet(document, value, Action.LOAD)
                         .getTables()
                         .values()
                         .forEach(table -> loadHandler.load(loadDatabase, table));
@@ -57,7 +59,7 @@ public class TedaExecutor {
                 executionHandler.execute(value);
                 break;
             case TEST:
-                requireSheet(document, value, "TEST")
+                requireSheet(document, value, Action.TEST)
                         .getTables()
                         .values()
                         .forEach(table -> testHandler.test(testDatabase, table));
@@ -69,11 +71,14 @@ public class TedaExecutor {
         }
     }
 
-    private static Sheet requireSheet(final Document document, final String name, final String action) {
+    private static Sheet requireSheet(final Document document, final String name, final Action action) {
         final Sheet sheet = document.getSheets().get(name);
         if (sheet == null) {
             throw TedaException.builder()
-                    .appendMessage("%s action references unknown sheet \"%s\"", action, name)
+                    .appendMessage("The %s action references the unknown sheet \"%s\"", action, name)
+                    .appendMessage(
+                            "Available sheets: %s",
+                            new TreeSet<>(document.getSheets().keySet()))
                     .build();
         }
         return sheet;

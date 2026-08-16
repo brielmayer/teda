@@ -55,7 +55,9 @@ public final class ObjectComparator {
         }
 
         throw TedaException.builder()
-                .appendMessage("Type %s not allowed", o1.getClass().getSimpleName())
+                .appendMessage("Unsupported data type %s", o1.getClass().getSimpleName())
+                .appendMessage("Comparable types are: String, Boolean, LocalDate, LocalDateTime, "
+                        + "LocalTime, BigInteger and BigDecimal.")
                 .build();
     }
 }

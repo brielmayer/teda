@@ -25,7 +25,7 @@ public class OdsDocumentParser implements Parser {
             file.deleteOnExit();
         } catch (final IOException e) {
             throw TedaException.builder()
-                    .appendMessage("Unable to read InputStream")
+                    .appendMessage("Unable to read the ODS spreadsheet from the given InputStream")
                     .cause(e)
                     .build();
         }
