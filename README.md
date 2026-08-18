@@ -27,6 +27,7 @@ outcome in another.
 - [Getting Started](#getting-started)
 - [How It Works](#how-it-works)
 - [The Spreadsheet Layout](#the-spreadsheet-layout)
+- [Programmatic Cockpit](#programmatic-cockpit)
 - [Actions Reference](#actions-reference)
 - [Type Handling](#type-handling)
 - [Load vs. Test Database](#load-vs-test-database)
@@ -165,7 +166,9 @@ the run, plus additional sheets holding the actual data.
 
 1. **Parse.** The spreadsheet is read into an in-memory model of sheets and tables.
 2. **Cockpit.** The first table of the first sheet (`Cockpit`) is the control
-   panel. Each of its rows lists actions to perform.
+   panel. Each of its rows lists actions to perform. Instead of the Cockpit
+   sheet you can also pass a Cockpit built in Java code, see
+   [Programmatic Cockpit](#programmatic-cockpit).
 3. **Execute.** For each row, Teda runs the actions in the fixed order
    `TRUNCATE → LOAD → EXECUTE → TEST`, using the cell value as the argument
    (a table name, a sheet name, or a value passed to your handler).
@@ -188,6 +191,10 @@ or table the action applies to. Empty cells are skipped.
 
 > The `#Teda` marker cell is followed by a free-text name in the cell to its right.
 > The header row below defines which actions run; each data row is one scenario.
+
+If you would rather express the run in Java code, see
+[Programmatic Cockpit](#programmatic-cockpit). Both styles work on every
+supported format.
 
 ### 2. Data sheets
 
@@ -266,12 +273,78 @@ Point Teda at the directory:
 new Teda(configuration).execute("tests/loadStudents", DocumentType.CSV);
 ```
 
+## Programmatic Cockpit
+
+The Cockpit can also be built in Java code and passed to `execute()` as a third
+argument. The file or directory then only holds the data sheets; no `Cockpit`
+sheet (or `Cockpit.csv`) is needed. This works for every supported format.
+
+```java
+import com.brielmayer.teda.Cockpit;
+
+Cockpit cockpit = Cockpit.builder()
+        .truncate("STUDENT")
+        .load("StudentInput")
+        .execute("importJob")
+        .test("StudentExpected")
+        .build();
+
+new Teda(configuration)
+        .execute("teda/STUDENT_TEST.xlsx", DocumentType.EXCEL, cockpit);
+```
+
+**Strict call order.** Steps run exactly in the order the builder methods were
+called. There is no implicit reordering, so cycles like
+`load → execute → test → load → execute → test` come out naturally:
+
+```java
+Cockpit.builder()
+        .truncate("STUDENT")
+        .load("Batch1_Input")
+        .execute("importJob")
+        .test("Batch1_Expected")
+
+        .load("Batch2_Input")
+        .execute("importJob")
+        .test("Batch2_Expected")
+        .build();
+```
+
+**Varargs per action.** Each builder method accepts one or more values, so
+`truncate("A", "B", "C")` expands into three steps in that order:
+
+```java
+Cockpit.builder()
+        .truncate("STUDENT", "STUDENT_HISTORY")
+        .load("StudentInput", "StudentHistoryInput")
+        .test("StudentExpected", "StudentHistoryExpected")
+        .build();
+```
+
+**Validation.**
+
+- The Cockpit is validated before any action runs. If a `LOAD` or `TEST` step
+  references a sheet that is not present in the file or directory, the run
+  fails with all missing sheets listed in one message.
+- `Cockpit.builder().build()` rejects an empty Cockpit and any null or empty
+  values passed to the action methods.
+- Combining a programmatic Cockpit with a file that also contains a `Cockpit`
+  sheet is treated as a **collision** and rejected. Either remove the sheet
+  from the file, or drop the Cockpit argument.
+
+**Optional name.** `Cockpit.builder().name("MyScenario")` mirrors the free
+text name next to the `#Teda` marker in the file variant. It is purely
+informational.
+
 ## Actions Reference
 
-Each column header in the Cockpit's `#Teda` table is one of the following actions.
-Within a row they always execute in this order:
+Four actions drive a Teda run. In the file based Cockpit they are the column
+headers in the `#Teda` table and each row runs them in the fixed order
+`TRUNCATE → LOAD → EXECUTE → TEST`. In the [programmatic
+Cockpit](#programmatic-cockpit) they run in the exact order the builder methods
+were called.
 
-| Action     | Cell value refers to  | Effect                                                                                                                        |
+| Action     | Value refers to       | Effect                                                                                                                        |
 |------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | `TRUNCATE` | a database table name | Empties the table in the **test** database before loading.                                                                    |
 | `LOAD`     | a sheet name          | Inserts every `#Table` block on that sheet into the **load** database.                                                        |

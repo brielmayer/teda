@@ -1,8 +1,10 @@
 package com.brielmayer.teda.executor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
+import com.brielmayer.teda.Cockpit;
 import com.brielmayer.teda.database.BaseDatabase;
 import com.brielmayer.teda.exception.TedaException;
 import com.brielmayer.teda.handler.IExecutionHandler;
@@ -12,6 +14,7 @@ import com.brielmayer.teda.handler.ITruncateHandler;
 import com.brielmayer.teda.model.Action;
 import com.brielmayer.teda.model.Document;
 import com.brielmayer.teda.model.Sheet;
+import com.brielmayer.teda.parser.Parser;
 
 public class TedaExecutor {
 
@@ -37,9 +40,52 @@ public class TedaExecutor {
     }
 
     public void execute(final Document document) {
-        final List<Command> commands = cockpitReader.read(document);
+        execute(document, null);
+    }
+
+    public void execute(final Document document, final Cockpit cockpit) {
+        final List<Command> commands = commandsFor(document, cockpit);
         for (final Command command : commands) {
             dispatch(command, document);
+        }
+    }
+
+    private List<Command> commandsFor(final Document document, final Cockpit cockpit) {
+        if (cockpit == null) {
+            return cockpitReader.read(document);
+        }
+        if (document.getSheets().containsKey(Parser.COCKPIT)) {
+            throw TedaException.builder()
+                    .appendMessage("Cockpit was provided programmatically, but the document also contains a \"%s\" sheet",
+                            Parser.COCKPIT)
+                    .appendMessage("Pick one: remove the sheet from the file, or drop the Cockpit argument.")
+                    .build();
+        }
+        validateReferences(document, cockpit);
+        final List<Command> commands = new ArrayList<>(cockpit.getSteps().size());
+        for (final Cockpit.Step step : cockpit.getSteps()) {
+            commands.add(new Command(step.getAction(), step.getValue()));
+        }
+        return commands;
+    }
+
+    private static void validateReferences(final Document document, final Cockpit cockpit) {
+        final List<String> missing = new ArrayList<>();
+        for (final Cockpit.Step step : cockpit.getSteps()) {
+            final Action action = step.getAction();
+            if (action != Action.LOAD && action != Action.TEST) {
+                continue;
+            }
+            final String sheetName = step.getValue();
+            if (!document.getSheets().containsKey(sheetName) && !missing.contains(sheetName)) {
+                missing.add(sheetName);
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw TedaException.builder()
+                    .appendMessage("Cockpit references sheets that are not in the document: %s", missing)
+                    .appendMessage("Available sheets: %s", new TreeSet<>(document.getSheets().keySet()))
+                    .build();
         }
     }
 

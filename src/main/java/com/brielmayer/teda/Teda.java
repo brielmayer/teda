@@ -21,20 +21,32 @@ public class Teda {
     }
 
     public void execute(final String filePath, final DocumentType documentType) {
-        execute(Paths.get(filePath), documentType);
+        execute(Paths.get(filePath), documentType, null);
+    }
+
+    public void execute(final String filePath, final DocumentType documentType, final Cockpit cockpit) {
+        execute(Paths.get(filePath), documentType, cockpit);
     }
 
     public void execute(final Path filePath, final DocumentType documentType) {
+        execute(filePath, documentType, null);
+    }
+
+    public void execute(final Path filePath, final DocumentType documentType, final Cockpit cockpit) {
         final Parser parser = ParserFactory.getParser(documentType);
-        run(parser.parse(filePath));
+        run(parser.parse(filePath), cockpit);
     }
 
     public void execute(final InputStream inputStream, final DocumentType documentType) {
-        final Parser parser = ParserFactory.getParser(documentType);
-        run(parser.parse(inputStream));
+        execute(inputStream, documentType, null);
     }
 
-    private void run(final Document document) {
+    public void execute(final InputStream inputStream, final DocumentType documentType, final Cockpit cockpit) {
+        final Parser parser = ParserFactory.getParser(documentType);
+        run(parser.parse(inputStream), cockpit);
+    }
+
+    private void run(final Document document, final Cockpit cockpit) {
         final TedaExecutor executor = TedaExecutor.builder()
                 .loadDatabase(DatabaseFactory.createDatabase(configuration.getLoadDatabase()))
                 .testDatabase(DatabaseFactory.createDatabase(configuration.getTestDatabase()))
@@ -43,6 +55,6 @@ public class Teda {
                 .executionHandler(configuration.getExecutionHandler())
                 .testHandler(configuration.getTestHandler())
                 .build();
-        executor.execute(document);
+        executor.execute(document, cockpit);
     }
 }
