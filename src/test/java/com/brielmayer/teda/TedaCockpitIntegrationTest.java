@@ -78,8 +78,8 @@ class TedaCockpitIntegrationTest {
                 .test("STUDENT_OUT")
                 .build();
 
-        final TedaException e = assertThrows(TedaException.class,
-                () -> teda().execute(ResourceReader.asPath("teda/csv/loadTest"), DocumentType.CSV, cockpit));
+        final TedaException e = assertThrows(TedaException.class, () -> teda().execute(
+                        ResourceReader.asPath("teda/csv/loadTest"), DocumentType.CSV, cockpit));
         assertTrue(e.getMessage().contains("Cockpit"), e.getMessage());
         assertTrue(e.getMessage().contains("also contains"), e.getMessage());
     }
@@ -92,8 +92,8 @@ class TedaCockpitIntegrationTest {
                 .test("STUDENT_OUT")
                 .build();
 
-        final TedaException e = assertThrows(TedaException.class,
-                () -> teda().execute(ResourceReader.asPath("teda/csv/programmatic"), DocumentType.CSV, cockpit));
+        final TedaException e = assertThrows(TedaException.class, () -> teda().execute(
+                        ResourceReader.asPath("teda/csv/programmatic"), DocumentType.CSV, cockpit));
         assertTrue(e.getMessage().contains("DOES_NOT_EXIST"), e.getMessage());
         assertTrue(e.getMessage().contains("not in the document"), e.getMessage());
     }
@@ -108,11 +108,8 @@ class TedaCockpitIntegrationTest {
                 .test("STUDENT_OUT")
                 .build();
 
-        final TedaException e = assertThrows(TedaException.class,
-                () -> teda().execute(
-                        ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"),
-                        DocumentType.EXCEL,
-                        cockpit));
+        final TedaException e = assertThrows(TedaException.class, () -> teda().execute(
+                        ResourceReader.asInputStream("teda/xlsx/LOAD_TEST.xlsx"), DocumentType.EXCEL, cockpit));
         assertTrue(e.getMessage().contains("also contains"), e.getMessage());
     }
 

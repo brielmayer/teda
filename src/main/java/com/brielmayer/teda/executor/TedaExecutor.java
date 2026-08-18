@@ -56,7 +56,8 @@ public class TedaExecutor {
         }
         if (document.getSheets().containsKey(Parser.COCKPIT)) {
             throw TedaException.builder()
-                    .appendMessage("Cockpit was provided programmatically, but the document also contains a \"%s\" sheet",
+                    .appendMessage(
+                            "Cockpit was provided programmatically, but the document also contains a \"%s\" sheet",
                             Parser.COCKPIT)
                     .appendMessage("Pick one: remove the sheet from the file, or drop the Cockpit argument.")
                     .build();
@@ -84,7 +85,9 @@ public class TedaExecutor {
         if (!missing.isEmpty()) {
             throw TedaException.builder()
                     .appendMessage("Cockpit references sheets that are not in the document: %s", missing)
-                    .appendMessage("Available sheets: %s", new TreeSet<>(document.getSheets().keySet()))
+                    .appendMessage(
+                            "Available sheets: %s",
+                            new TreeSet<>(document.getSheets().keySet()))
                     .build();
         }
     }

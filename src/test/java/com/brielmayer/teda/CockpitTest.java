@@ -33,10 +33,8 @@ class CockpitTest {
 
     @Test
     void varargsExpandInCallOrder() {
-        final Cockpit cockpit = Cockpit.builder()
-                .truncate("A", "B", "C")
-                .load("A_IN", "B_IN")
-                .build();
+        final Cockpit cockpit =
+                Cockpit.builder().truncate("A", "B", "C").load("A_IN", "B_IN").build();
 
         final List<Cockpit.Step> steps = cockpit.getSteps();
         assertEquals(5, steps.size());
@@ -77,34 +75,32 @@ class CockpitTest {
     @Test
     void stepsListIsImmutable() {
         final Cockpit cockpit = Cockpit.builder().truncate("A").build();
-        assertThrows(UnsupportedOperationException.class,
-                () -> cockpit.getSteps().add(new Cockpit.Step(Action.LOAD, "X")));
+        assertThrows(
+                UnsupportedOperationException.class, () -> cockpit.getSteps().add(new Cockpit.Step(Action.LOAD, "X")));
     }
 
     @Test
     void buildRejectsEmptyCockpit() {
-        final TedaException e = assertThrows(TedaException.class,
-                () -> Cockpit.builder().build());
+        final TedaException e =
+                assertThrows(TedaException.class, () -> Cockpit.builder().build());
         assertTrue(e.getMessage().contains("no steps"), e.getMessage());
     }
 
     @Test
     void actionMethodRejectsEmptyVarargs() {
-        final TedaException e = assertThrows(TedaException.class,
-                () -> Cockpit.builder().load());
+        final TedaException e =
+                assertThrows(TedaException.class, () -> Cockpit.builder().load());
         assertTrue(e.getMessage().contains("at least one value"), e.getMessage());
     }
 
     @Test
     void actionMethodRejectsNullValue() {
-        assertThrows(TedaException.class,
-                () -> Cockpit.builder().truncate("A", null, "B"));
+        assertThrows(TedaException.class, () -> Cockpit.builder().truncate("A", null, "B"));
     }
 
     @Test
     void actionMethodRejectsEmptyValue() {
-        assertThrows(TedaException.class,
-                () -> Cockpit.builder().load(""));
+        assertThrows(TedaException.class, () -> Cockpit.builder().load(""));
     }
 
     private static void assertStep(final Cockpit.Step step, final Action action, final String value) {

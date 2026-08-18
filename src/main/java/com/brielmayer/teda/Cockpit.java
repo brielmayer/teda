@@ -95,13 +95,16 @@ public final class Cockpit {
         private Builder append(final Action action, final String[] values) {
             if (values == null || values.length == 0) {
                 throw TedaException.builder()
-                        .appendMessage("Cockpit.Builder.%s requires at least one value", action.name().toLowerCase())
+                        .appendMessage(
+                                "Cockpit.Builder.%s requires at least one value",
+                                action.name().toLowerCase())
                         .build();
             }
             for (final String value : values) {
                 if (value == null || value.isEmpty()) {
                     throw TedaException.builder()
-                            .appendMessage("Cockpit.Builder.%s does not accept null or empty values",
+                            .appendMessage(
+                                    "Cockpit.Builder.%s does not accept null or empty values",
                                     action.name().toLowerCase())
                             .build();
                 }
