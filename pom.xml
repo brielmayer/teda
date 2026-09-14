@@ -70,7 +70,7 @@
         <mysql.version>26.7.0</mysql.version>
         <postgresql.version>42.7.13</postgresql.version>
         <ojdbc.version>23.26.3.0.0</ojdbc.version>
-        <mssql-jdbc.version>13.4.0.jre11</mssql-jdbc.version>
+        <mssql-jdbc.version>13.6.0.jre11</mssql-jdbc.version>
         <mariadb.version>3.5.10</mariadb.version>
 
         <!-- Plugins -->
